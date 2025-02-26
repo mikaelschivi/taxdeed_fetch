@@ -21,5 +21,10 @@ def run():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route("/ping", methods=['GET'])
+def ping():
+    return jsonify("pong")
+
 if __name__ == '__main__':
     app.run(debug=True)

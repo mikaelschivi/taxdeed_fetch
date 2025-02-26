@@ -2,29 +2,29 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
-
-import logging
+from selenium.webdriver.firefox.service import Service
 
 from time import perf_counter
+import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
+# logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.WARNING)
+# logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 def builder(post_json):
-    options = Options()
-    options.add_argument("--headless")  # headless mode     
-    
     s = perf_counter()
-    auction = fetch_website_data(post_json["url"], options)
+    auction = fetch_website_data(post_json["url"])
     e = perf_counter()
         
     print(f"elapsed time: {(e - s):.4}s")
     return auction
 
-def fetch_website_data(url, options):
+def fetch_website_data(url):
     try:
-        driver = webdriver.Firefox(options=options)
+        options = Options()
+        options.add_argument("--headless")  # headless mode     
+        service = Service(log_path='geckodriver.log')
+        driver = webdriver.Firefox(options=options, service=service)
         driver.get(url)   
         
         # setup max wait time for element/other shit to load 
