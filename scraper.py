@@ -1,34 +1,32 @@
-#!/usr/bin/env python3
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 
-import time
+import logging
+
+from time import perf_counter
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 def builder(post_json):
-    s = time.perf_counter()
-    if post_json["url"] != "":
-        print("send it")
-        auction = fetch_website_data(post_json["url"])
-    else:
-        ...
+    options = Options()
+    options.add_argument("--headless")  # headless mode     
     
-    e = time.perf_counter()
-
+    s = perf_counter()
+    auction = fetch_website_data(post_json["url"], options)
+    e = perf_counter()
+        
     print(f"elapsed time: {(e - s):.4}s")
     return auction
 
-def fetch_website_data(url):
-    options = Options() 
-    options.add_argument("--headless")  # headless mode     
-
-    # webdriver is firefox
-    driver = webdriver.Firefox(options=options)
-    
+def fetch_website_data(url, options):
     try:
+        driver = webdriver.Firefox(options=options)
         driver.get(url)   
+        
         # setup max wait time for element/other shit to load 
         wait = WebDriverWait(driver, 2)
 
@@ -40,7 +38,7 @@ def fetch_website_data(url):
         max_pages = int(max_pages.strip())
 
         auction = []
-        for i in range(max_pages):
+        for _ in range(max_pages):
             wait.until(lambda d: d.find_element(By.XPATH, "/html/body/table/tbody/tr/td[2]/div[3]/div[3]/div[4]/div[1]/div[1]/div[2]").text.strip() != "")
             items = extract_auction_items(driver)
             for auction_item in items: 
@@ -90,12 +88,3 @@ def extract_auction_items(driver):
         items.append(auction_info)
     
     return items
-
-test = {
-    "county" : "Miami-Dade",
-    "day" : "06",
-    "month" : "02",
-    "url" : "https://lee.realtaxdeed.com/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE=03/11/2025"
-}
-
-builder(test)
